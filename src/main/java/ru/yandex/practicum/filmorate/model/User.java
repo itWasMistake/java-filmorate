@@ -20,9 +20,8 @@ public class User {
     @NotNull
     @NotBlank
     private final String login;
-    @NotNull
     @NotBlank
-    private final String name;
+    private  String name;
     @Past
     @NotNull
     private final LocalDate birthday;
