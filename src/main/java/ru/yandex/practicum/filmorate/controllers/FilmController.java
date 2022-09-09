@@ -1,6 +1,7 @@
 package ru.yandex.practicum.filmorate.controllers;
 
 
+import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
 import ru.yandex.practicum.filmorate.model.Film;
@@ -13,10 +14,11 @@ import java.util.Map;
 
 @Slf4j
 @RestController("/films")
+@Data
 public class FilmController {
 
     private static final LocalDate DAY_OF_THE_FIRST_FILM = LocalDate.of(1895, 12, 28);
-    Map<Integer, Film> filmsMap = new HashMap<>();
+    private Map<Integer, Film> filmsMap = new HashMap<>();
 
     @PostMapping(value = "/films/create-film")
     public Film createFilm(@RequestBody @Valid Film film) {
@@ -32,7 +34,7 @@ public class FilmController {
 
     }
 
-    @PutMapping(value = "/films/update-film")
+    @PutMapping(value = "/films/update-film/{id}")
     public Film updateFilm(@RequestBody @Valid Film film, Integer id) {
         log.info("Получен запрос к эндпоинту updateUser: /films/update-film");
         if (film.getReleaseDate().isBefore(DAY_OF_THE_FIRST_FILM)) {
