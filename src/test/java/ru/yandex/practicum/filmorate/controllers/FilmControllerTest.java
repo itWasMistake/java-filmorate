@@ -1,27 +1,19 @@
 package ru.yandex.practicum.filmorate.controllers;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import net.bytebuddy.utility.RandomString;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
-
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.test.web.servlet.result.MockMvcResultHandlers;
 import ru.yandex.practicum.filmorate.model.Film;
 
 import java.time.LocalDate;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @SpringBootTest
@@ -44,15 +36,13 @@ class FilmControllerTest {
 
     @BeforeAll
     public static void setUpFilms() {
-        correctFilm = new Film(1, "Correct-Film",
-                RandomString.make(200), CORRECT_DATE_DAY_OF_FILMS, 90);
+        correctFilm = new Film("CorrectFilmName", "CorrectFilm", CORRECT_DATE_DAY_OF_FILMS, 90);
 
-        theHouseThatJackBuilt = new Film(2, "The House That Jack Built",
-                "The story follows Jack, a highly intelligent serial killer, over the course of twelve years, " +
-                        "and depicts the murders that really develop his inner madman.",
+        theHouseThatJackBuilt = new Film("The House That Jack Built",
+                "The story follows Jack, a highly intelligent serial killer",
                 RELEASE_OF_THE_HOUSE_THAT_JACK_BUILT, 152L);
 
-        wrongFilm = new Film(3, "WrongFilm", "WrongFilmDescription",
+        wrongFilm = new Film("WrongFilm", "WrongFilm",
                 WRONG_RELEASE_DATE, -100);
 
     }
@@ -66,13 +56,13 @@ class FilmControllerTest {
     void mustCreateCorrectFilmAndReturnCode200ThenReturnFilm() {
         try {
             mockMvc.perform(
-                            post("/films/create-film")
+                            post("/films")
                                     .content(objectMapper.writeValueAsString(correctFilm))
                                     .contentType(MediaType.APPLICATION_JSON)
                     )
                     .andExpect(status().is(200))
                     .andExpect(jsonPath("$.id").isNumber())
-                    .andExpect(jsonPath("$.name").value("Correct-Film"));
+                    .andExpect(jsonPath("$.name").value("CorrectFilmName"));
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
@@ -82,7 +72,7 @@ class FilmControllerTest {
     void mustNotCreateWrongFilmAndReturnCode400() {
         try {
             mockMvc.perform(
-                            post("/films/create-film")
+                            post("/films")
                                     .content(objectMapper.writeValueAsString(wrongFilm))
                                     .contentType(MediaType.APPLICATION_JSON)
                     )
@@ -96,7 +86,7 @@ class FilmControllerTest {
     void mustCreateExistingFilmAndReturnCode200ThenReturnFilm() {
         try {
             mockMvc.perform(
-                            post("/films/create-film")
+                            post("/films")
                                     .content(objectMapper.writeValueAsString(theHouseThatJackBuilt))
                                     .contentType(MediaType.APPLICATION_JSON)
                     )
@@ -110,17 +100,20 @@ class FilmControllerTest {
 
     @Test
     void updateFilm() {
-        Film film = new Film(121, "Film", "description", LocalDate.now(), 90);
+        Film film = new Film("name", "Film", LocalDate.now(), 90);
+        film.setId(4);
         controller.getFilmsMap().put(film.getId(), film);
-        try {
-        mockMvc.perform(
-                put("/films/update-film/{id}", 121)
-                        .content(objectMapper.writeValueAsString(correctFilm))
-                        .contentType(MediaType.APPLICATION_JSON))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.id").value("1"))
-                .andExpect(jsonPath("$.name").value("Correct-Film"));
+        correctFilm.setId(4);
         System.out.println(controller.getFilmsMap());
+        try {
+            mockMvc.perform(
+                            put("/films")
+                                    .content(objectMapper.writeValueAsString(correctFilm))
+                                    .contentType(MediaType.APPLICATION_JSON))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.id").value("4"))
+                    .andExpect(jsonPath("$.name").value("CorrectFilmName"));
+            System.out.println(controller.getFilmsMap());
 
         } catch (Exception e) {
             throw new RuntimeException(e);
