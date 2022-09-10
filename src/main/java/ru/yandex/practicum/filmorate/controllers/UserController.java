@@ -26,9 +26,6 @@ public class UserController {
             user.setName(user.getLogin());
             usersMap.put(user.getId(), user);
         }
-        user.setId(generateId());
-
-        usersMap.put(user.getId(), user);
         return user;
     }
 
@@ -44,7 +41,8 @@ public class UserController {
                 log.info("ID пользователя не может быть отрицательным. Передано: " + user.getId());
                 throw new ValidationException("Нельзя создать пользователя с отрицательным ID");
             } else {
-                usersMap.put(user.getId(), user);
+                user.setId(generateId());
+                createUser(user);
                 return user;
             }
 

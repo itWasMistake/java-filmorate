@@ -52,13 +52,9 @@ public class FilmController {
             if (film.getId() < 0) {
                 throw new ValidationException("ID фильма не может быть отрицательным. Передано: " + film.getId());
             }
-            if (film.getReleaseDate().isBefore(DAY_OF_THE_FIRST_FILM)) {
-                throw new ValidationException("Фильм не может выйти в релиз раньше чем первый день кино");
-            } else {
-                film.setId(generateId());
-                filmsMap.put(film.getId(), film);
-                return film;
-            }
+            film.setId(generateId());
+            createFilm(film);
+            return film;
         }
     }
 
