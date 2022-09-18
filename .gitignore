@@ -1,3 +1,6 @@
+<<<<<<< HEAD
+HELP.md
+=======
 *.class
 *.log
 *.jar
@@ -9,6 +12,7 @@
 *.rar
 hs_err_pid*
 out/
+>>>>>>> 2c50e468d62245789c94de541f657c6baa2f6f93
 target/
 !.mvn/wrapper/maven-wrapper.jar
 !**/src/main/**/target/
@@ -41,6 +45,9 @@ build/
 
 ### VS Code ###
 .vscode/
+<<<<<<< HEAD
+=======
 
 *.db
 db/*
+>>>>>>> 2c50e468d62245789c94de541f657c6baa2f6f93
