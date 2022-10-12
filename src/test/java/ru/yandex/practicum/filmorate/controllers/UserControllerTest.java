@@ -109,20 +109,4 @@ class UserControllerTest {
         }
 
     }
-
-    @Test
-    void findAll() {
-        correctUser.setId(controller.generateId());
-        controller.getUsersMap().put(correctUser.getId(), correctUser);
-        try {
-            mockMvc.perform(
-                            get("/users")
-                                    .contentType(MediaType.APPLICATION_JSON)
-                    )
-                    .andExpect(status().isOk())
-                    .andExpect(content().json(objectMapper.writeValueAsString(controller.getUsersMap())));
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
-    }
 }
