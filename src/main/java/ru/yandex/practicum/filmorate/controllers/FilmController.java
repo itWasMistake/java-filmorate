@@ -1,59 +1,72 @@
 package ru.yandex.practicum.filmorate.controllers;
 
-import org.springframework.beans.factory.annotation.Autowired;
+
+import lombok.Data;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
-import ru.yandex.practicum.filmorate.inmemorystorage.InMemoryFilmStorage;
 import ru.yandex.practicum.filmorate.model.Film;
-import ru.yandex.practicum.filmorate.service.FilmService;
 
 import javax.validation.Valid;
-import java.util.List;
+import javax.validation.ValidationException;
+import java.time.LocalDate;
+import java.util.HashMap;
 import java.util.Map;
 
+@Slf4j
 @RestController
+@RequestMapping("/films")
+@Data
 public class FilmController {
-    private final FilmService filmService;
-    private final InMemoryFilmStorage filmStorage;
+    private int id = 1;
 
-    @Autowired
-    public FilmController(FilmService filmService, InMemoryFilmStorage filmStorage) {
-        this.filmService = filmService;
-        this.filmStorage = filmStorage;
+    private static final LocalDate DAY_OF_THE_FIRST_FILM = LocalDate.of(1895, 12, 28);
+    private Map<Integer, Film> filmsMap = new HashMap<>();
 
-    }
-
-
-    @RequestMapping(value = "/films/{id}/like/{userId}",
-            method = RequestMethod.PUT)
-    public Film putLike(@PathVariable(value = "id") String id, @PathVariable(value = "userId") String userId) {
-        return filmService.addLike(Integer.parseInt(id), Integer.parseInt(userId));
-    }
-
-    @RequestMapping(value = "/films/{id}/like/{userId}",
-            method = RequestMethod.DELETE)
-    public Film delLike(@PathVariable(value = "id") String filmId, @PathVariable(value = "userId") String userId) {
-        return filmService.removeLike(Integer.parseInt(filmId), Integer.parseInt(userId));
-    }
-
-    @RequestMapping(value = "/films/popular",
-            method = RequestMethod.GET)
-    public List<Film> getPopularFilms(@RequestParam(value = "count", required = false, defaultValue = "10") String count) {
-            filmService.mostPopularMovies(10);
-        return filmService.mostPopularMovies(Integer.parseInt(count));
-    }
-
-    @PostMapping("/films")
+    @PostMapping
     public Film createFilm(@RequestBody @Valid Film film) {
-        return filmStorage.createFilm(film);
+        log.info("Получен запрос к эндпоинту createFilm: " + film.toString());
+        if (film.getReleaseDate().isBefore(DAY_OF_THE_FIRST_FILM)) {
+            log.error("Была попытка создать фильм, с датой релиза раньше первого дня кино");
+            throw new ValidationException("Фильм не может выйти в релиз раньше чем первый день кино");
+        } else {
+            film.setId(generateId());
+            filmsMap.put(film.getId(), film);
+            return film;
+        }
+
+
     }
 
-    @PutMapping("/films")
+    @PutMapping
     public Film updateFilm(@RequestBody @Valid Film film) {
-        return filmStorage.updateFilm(film);
+        log.info("Запрос к эндпоинту updateFilm: " + film.toString());
+        if (filmsMap.containsKey(film.getId())) {
+            if (film.getReleaseDate().isBefore(DAY_OF_THE_FIRST_FILM)) {
+                throw new ValidationException("Фильм не может выйти в релиз раньше чем первый день кино");
+            } else {
+                filmsMap.replace(film.getId(), film);
+                return film;
+            }
+        } else {
+            log.info("Переданный ID фильма не существует. Будет создан новый фильм");
+            if (film.getId() < 0) {
+                throw new ValidationException("ID фильма не может быть отрицательным. Передано: " + film.getId());
+            }
+            film.setId(generateId());
+            createFilm(film);
+            return film;
+        }
     }
 
-    @GetMapping("/films")
+    @GetMapping
     public Map<Integer, Film> findAll() {
-        return filmStorage.findAll();
+        log.info("Получен запрос к эндпоинту findAll: " + filmsMap.toString());
+        return filmsMap;
     }
+
+    protected int generateId() {
+        return ++id;
+    }
+
+
 }
