@@ -39,7 +39,7 @@ public class FilmController {
 
     @PutMapping
     public Film updateFilm(@RequestBody @Valid Film film) {
-        log.info("Получен запрос к эндпоинту updateFilm: " + film.toString());
+        log.info("Запрос к эндпоинту updateFilm: " + film.toString());
         if (filmsMap.containsKey(film.getId())) {
             if (film.getReleaseDate().isBefore(DAY_OF_THE_FIRST_FILM)) {
                 throw new ValidationException("Фильм не может выйти в релиз раньше чем первый день кино");
