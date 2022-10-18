@@ -2,18 +2,21 @@ package ru.yandex.practicum.filmorate.inmemorystorage;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
+import ru.yandex.practicum.filmorate.exceptions.NotFoundException;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.storage.FilmStorage;
 
 import javax.validation.ValidationException;
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 @Component
 @Slf4j
 public class InMemoryFilmStorage implements FilmStorage {
-    private int id = 1;
+    private int id = 0;
 
     private static final LocalDate DAY_OF_THE_FIRST_FILM = LocalDate.of(1895, 12, 28);
     private final Map<Integer, Film> filmsMap = new HashMap<>();
@@ -31,7 +34,9 @@ public class InMemoryFilmStorage implements FilmStorage {
 
     public Film getFilmById(int filmId) {
         if (filmId < 0) {
-            throw new RuntimeException("Id фильма не может быть отрицательным числом");
+            throw new NotFoundException("Id фильма не может быть отрицательным числом");
+        } else if (!filmsMap.containsKey(filmId)) {
+            throw new NotFoundException("Фильма с таким ID не найдено");
         }
         return filmsMap.get(filmId);
     }
@@ -42,17 +47,15 @@ public class InMemoryFilmStorage implements FilmStorage {
         if (filmsMap.containsKey(film.getId())) {
             filmsMap.replace(film.getId(), film);
         } else {
-            log.info("Переданный ID фильма не существует. Будет создан новый фильм");
-            film.setId(generateId());
-            createFilm(film);
+            throw  new NotFoundException("Фильм не был найден...");
         }
         return film;
     }
 
     @Override
-    public Map<Integer, Film> findAll() {
+    public List<Film> findAll() {
         log.info("Получен запрос к эндпоинту findAll: " + filmsMap);
-        return filmsMap;
+        return new ArrayList<>(filmsMap.values());
     }
 
 

@@ -8,9 +8,9 @@ import ru.yandex.practicum.filmorate.service.FilmService;
 
 import javax.validation.Valid;
 import java.util.List;
-import java.util.Map;
 
 @RestController
+@RequestMapping("/films")
 public class FilmController {
     private final FilmService filmService;
     private final InMemoryFilmStorage filmStorage;
@@ -23,37 +23,43 @@ public class FilmController {
     }
 
 
-    @RequestMapping(value = "/films/{id}/like/{userId}",
+    @RequestMapping(value = "/{id}/like/{userId}",
             method = RequestMethod.PUT)
     public Film putLike(@PathVariable(value = "id") String id, @PathVariable(value = "userId") String userId) {
         return filmService.addLike(Integer.parseInt(id), Integer.parseInt(userId));
     }
 
-    @RequestMapping(value = "/films/{id}/like/{userId}",
+    @RequestMapping(value = "/{id}/like/{userId}",
             method = RequestMethod.DELETE)
     public Film delLike(@PathVariable(value = "id") String filmId, @PathVariable(value = "userId") String userId) {
         return filmService.removeLike(Integer.parseInt(filmId), Integer.parseInt(userId));
     }
 
-    @RequestMapping(value = "/films/popular",
+    @RequestMapping(value = "/popular",
             method = RequestMethod.GET)
     public List<Film> getPopularFilms(@RequestParam(value = "count", required = false, defaultValue = "10") String count) {
             filmService.mostPopularMovies(10);
         return filmService.mostPopularMovies(Integer.parseInt(count));
     }
+    @RequestMapping(value = "/{id}",
+            method = RequestMethod.GET)
+    public Film getFilmById(@PathVariable(value = "id") String id) {
+        return filmStorage.getFilmById(Integer.parseInt(id));
 
-    @PostMapping("/films")
+    }
+
+    @PostMapping
     public Film createFilm(@RequestBody @Valid Film film) {
         return filmStorage.createFilm(film);
     }
 
-    @PutMapping("/films")
+    @PutMapping
     public Film updateFilm(@RequestBody @Valid Film film) {
         return filmStorage.updateFilm(film);
     }
 
-    @GetMapping("/films")
-    public Map<Integer, Film> findAll() {
+    @GetMapping
+    public List<Film> findAll() {
         return filmStorage.findAll();
     }
 }

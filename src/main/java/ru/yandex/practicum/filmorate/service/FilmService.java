@@ -4,11 +4,13 @@ package ru.yandex.practicum.filmorate.service;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import ru.yandex.practicum.filmorate.exceptions.NotFoundException;
 import ru.yandex.practicum.filmorate.inmemorystorage.InMemoryFilmStorage;
 import ru.yandex.practicum.filmorate.model.Film;
 
 import java.util.Comparator;
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 @Service
@@ -22,24 +24,31 @@ public class FilmService {
     }
 
     public Film addLike(int filmId, int userId) {
-        filmStorage.getFilmById(filmId).increase();
-        filmStorage.getFilmById(filmId).getUserLikes().add(userId);
+        Film currFilm = filmStorage.getFilmById(filmId);
+        currFilm.increase();
+        currFilm.getUserLikes().add(userId);
 
-        return filmStorage.getFilmById(filmId);
+        return currFilm;
     }
 
 
     public Film removeLike(int filmId, int userId) {
-        if (filmStorage.findAll().get(filmId).getUserLikes().remove(userId)) {
-            filmStorage.findAll().get(filmId).reduce();
-            return filmStorage.findAll().get(filmId);
+        Film currFilm = filmStorage.getFilmById(filmId);
+        if (Objects.nonNull(currFilm) && currFilm.getUserLikes().contains(userId)) {
+            currFilm.getUserLikes().remove(userId);
+            currFilm.reduce();
+            return currFilm;
+        } else if (Objects.isNull(currFilm)) {
+            throw new NotFoundException("Фильм с таким id не был найден");
+        } else if (!currFilm.getUserLikes().contains(userId)) {
+            throw new NotFoundException("Пользователь с таким id не ставил лайк фильму.");
         }
-        return null;
+        return currFilm;
     }
 
     public List<Film> mostPopularMovies(int count) {
         log.info("Получен запрос на получение популярных фильмов");
-        return filmStorage.findAll().values().stream()
+        return filmStorage.findAll().stream()
                 .sorted(Comparator.comparing(Film::getLikesCount).reversed())
                 .limit(count)
                 .collect(Collectors.toList());
