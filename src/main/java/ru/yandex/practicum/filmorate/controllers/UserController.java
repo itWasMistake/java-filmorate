@@ -1,63 +1,73 @@
 package ru.yandex.practicum.filmorate.controllers;
 
-import lombok.Data;
-import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
+import ru.yandex.practicum.filmorate.inmemorystorage.InMemoryUserStorage;
 import ru.yandex.practicum.filmorate.model.User;
+import ru.yandex.practicum.filmorate.service.UserService;
 
 import javax.validation.Valid;
-import javax.validation.ValidationException;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.List;
 
-@Slf4j
 @RestController
 @RequestMapping("/users")
-@Data
 public class UserController {
-    private int id = 1;
-    private Map<Integer, User> usersMap = new HashMap<>();
+
+
+    private final InMemoryUserStorage userStorage;
+    private final UserService userService;
+
+
+    @Autowired
+    public UserController(UserService userService, InMemoryUserStorage userStorage) {
+        this.userService = userService;
+        this.userStorage = userStorage;
+    }
+
+    @RequestMapping(value = "/{id}/friends/{friendId}",
+            method = RequestMethod.PUT
+    )
+    public User addFriend(@PathVariable(value = "id") String id, @PathVariable(value = "friendId") String friendId) {
+        return userService.addFriend(Integer.parseInt(friendId), Integer.parseInt(id));
+    }
+
+    @RequestMapping(value = "/{id}/friends/{friendId}",
+            method = RequestMethod.DELETE)
+    public User delFriend(@PathVariable(value = "id") @Valid String id, @PathVariable(value = "friendId") String friendId) {
+        return userService.delFriend(Integer.parseInt(friendId), Integer.parseInt(id));
+    }
+
+    @RequestMapping(value = "/{id}/friends",
+            method = RequestMethod.GET)
+    public List<User> getFriends(@PathVariable(value = "id") String id) {
+        return userService.getAllFriends(Integer.parseInt(id));
+    }
+
+    @RequestMapping(value = "/{id}/friends/common/{otherId}",
+            method = RequestMethod.GET)
+    public List<User> getCommonFriends(@PathVariable(value = "id") int id, @PathVariable(value = "otherId") int otherId) {
+        return userService.getCommonFriends(otherId, id);
+    }
 
     @PostMapping
     public User createUser(@RequestBody @Valid User user) {
-        log.info("Получен запрос к эндпоинту createUser: " + user.toString());
-        if (user.getName() == null) {
 
-            user.setName(user.getLogin());
-            usersMap.put(user.getId(), user);
-        }
-        return user;
+        return userStorage.createUser(user);
     }
 
     @PutMapping
     public User updateUser(@RequestBody @Valid User user) {
-        log.info("Получен запрос к эндпоинту updateUser, передан ID: " + user.toString());
-        if (usersMap.containsKey(user.getId())) {
-            usersMap.replace(user.getId(), user);
-            return user;
-        } else {
-            log.info("Переданный ID пользователя не существует, будет создан новый");
-            if (user.getId() < 0) {
-                log.info("ID пользователя не может быть отрицательным. Передано: " + user.getId());
-                throw new ValidationException("Нельзя создать пользователя с отрицательным ID");
-            } else {
-                user.setId(generateId());
-                createUser(user);
-                return user;
-            }
-
-        }
-
-
+        return userStorage.updateUser(user);
     }
 
     @GetMapping
-    public Map<Integer, User> findAll() {
-        log.info("Получен запрос к эндпоинту findAll: " + usersMap.toString());
-        return usersMap;
+    public List<User> findAll() {
+        return userStorage.findAll();
     }
 
-    protected int generateId() {
-        return ++id;
+    @GetMapping("/{id}")
+    public User getUserById(@PathVariable String id) {
+        return userStorage.getUserById(Integer.parseInt(id));
     }
+
 }
