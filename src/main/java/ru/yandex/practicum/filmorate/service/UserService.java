@@ -49,7 +49,7 @@ public class UserService {
 
     }
 
-//g
+
     public List<User> getCommonFriends(int findUserId, int myId) {
         log.info("Получен запрос к эндпоинту getCommonFriends." +
                 "Передано: " + findUserId + " " + myId);
