@@ -15,12 +15,13 @@ public class UserService {
     private final InMemoryUserStorage userStorage;
 
     @Autowired
-    public UserService (final InMemoryUserStorage userStorage) {
+    public UserService(final InMemoryUserStorage userStorage) {
         this.userStorage = userStorage;
     }
+
     public User addFriend(int friendId, int myId) {
-       log.info("Получен запрос к эндпоинту addFriend." +
-               "Передано: " + "Id друга: " + friendId + " Мой ID: " + myId);
+        log.info("Получен запрос к эндпоинту addFriend." +
+                "Передано: " + "Id друга: " + friendId + " Мой ID: " + myId);
         User wantsToBeFriends = userStorage.getUserById(myId);
         User whoIsBeingAdded = userStorage.getUserById(friendId);
         whoIsBeingAdded.getFiendsSet().add(myId);
@@ -28,19 +29,19 @@ public class UserService {
         log.info("Добавлены в друзья");
         return whoIsBeingAdded;
     }
+
     public User delFriend(int friendId, int myId) {
         log.info("Получен запрос к эндпоинту delFriend." +
                 "Передано: " + friendId + myId);
         User whoDeleted = userStorage.findAll().get(friendId);
         User whoDeleting = userStorage.findAll().get(myId);
         whoDeleted.getFiendsSet().remove(whoDeleting.getId());
-        whoDeleting.getFiendsSet().remove(whoDeleted.getId());
         return whoDeleted;
     }
 
     public List<User> getAllFriends(int myId) {
         log.info("Получен запрос к эндпоинту getAllFriends." +
-                "Передано: "  + myId);
+                "Передано: " + myId);
         return userStorage.getUserById(myId)
                 .getFiendsSet()
                 .stream()
@@ -53,12 +54,15 @@ public class UserService {
     public List<User> getCommonFriends(int findUserId, int myId) {
         log.info("Получен запрос к эндпоинту getCommonFriends." +
                 "Передано: " + findUserId + " " + myId);
-        return userStorage.getUserById(findUserId)
-                .getFiendsSet()
-                .stream()
-                .filter((n) -> n == myId)
+        return userStorage.getUserById(findUserId).getFiendsSet().stream()
+                .filter(id -> userStorage
+                        .getUserById(myId)
+                        .getFiendsSet()
+                        .contains(id))
                 .map(userStorage.getUsersMap()::get)
-                .collect(Collectors.toList());
+                .collect(Collectors.toList())
+                ;
+
     }
 
 }
